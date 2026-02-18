@@ -13,7 +13,7 @@ class user_reg(BaseModel):
     role: str
 
 class user_login(BaseModel):
-    email: EmailStr
+    email:EmailStr
     pw: str=Field(...,min_length=6,max_length=72)
     
     class Config:

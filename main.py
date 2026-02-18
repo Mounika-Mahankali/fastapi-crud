@@ -120,15 +120,17 @@ def register(user:models.user_reg,db:session=Depends(get_db)):
     return "user registered successfully"
 
 @app.post("/login")
-def login(user:models.user_login,db:session=Depends(get_db)):
-    db_user=db.query(database_models.User).filter(database_models.User.email==user.email).first()
+def login(form_data: OAuth2PasswordRequestForm=Depends(),db:session=Depends(get_db)):
+    db_user=db.query(database_models.User).filter(database_models.User.username==form_data.username).first()
     if not db_user:
         raise HTTPException(status_code=401,detail="user not found")
-    if not verify_pwd(user.pw,db_user.hashed_pw):
+    if not db_user.is_active:
+        raise HTTPException(status_code=400,detail="user account is inactive")
+    if not verify_pwd(form_data.password,db_user.hashed_pw):
         raise HTTPException(status_code=401,detail="Invalid credentials")
     access_token=create_token({'sub':db_user.email})
     return {
-        "acess_token":access_token,
+        "access_token":access_token,
         "token_type":"bearer"
     }
 
@@ -145,7 +147,7 @@ oauth2_scheme=OAuth2PasswordBearer(tokenUrl="login")
 def get_current_user(token:str=Depends(oauth2_scheme),db: session=Depends(get_db)):
     try:
         payload=jwt.decode(token,SECRET_KEY,algorithms=[ALGORITHM])
-        email=payload.get("sub")
+        email:str=payload.get("sub")
         if email is None:
             raise HTTPException(status_code=401,detail="Invalid token")
     

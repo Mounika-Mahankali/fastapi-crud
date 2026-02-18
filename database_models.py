@@ -1,5 +1,5 @@
 from database import Base
-from sqlalchemy import Column, Integer, String, Float
+from sqlalchemy import Column, Integer, String, Float,Boolean
 
 class Product(Base):
     __tablename__="Products"
@@ -15,4 +15,5 @@ class User(Base):
     email=Column(String,unique=True,index=True)
     hashed_pw=Column(String)
     role=Column(String,default="user")
+    is_active = Column(Boolean, default=True) 
 
